@@ -89,15 +89,9 @@ def main():
                         help="Path to cache NF4 quantized weights")
     args = parser.parse_args()
 
-    # Only patch SDPA if using mps_flash backend
-    if args.attention == "mps_flash":
-        try:
-            from mps_flash_attn import replace_sdpa
-            replace_sdpa()
-            print("✓ MPS Flash Attention SDPA patched")
-        except ImportError:
-            print("⚠ mps-flash-attn not installed, falling back to native")
-            args.attention = "native"
+    # NOTE: Don't call replace_sdpa() here - it patches ALL SDPA including text encoder
+    # which causes different text embeddings and completely wrong images!
+    # The mps_flash backend is used via set_attention_backend() for the transformer only.
 
     print(f"Loading model...")
     model_path = ensure_model_weights("ckpts/Z-Image-Turbo", verify=False)
